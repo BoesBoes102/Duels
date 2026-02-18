@@ -1,0 +1,13 @@
+name: Duels
+version: 1.0.3
+main: com.boes.duels.Duels
+api-version: 1.21
+depend: [FastAsyncWorldEdit]
+softdepend: [Vault]
+permissions:
+  duels.admin:
+    description: Allows access to admin commands
+    default: op
+  duels.use:
+    description: Allows using the duel command
+    default: true
