@@ -161,8 +161,8 @@ public class DuelManager {
 
                 CompletableFuture.allOf(tp1, tp2).thenCompose(v -> 
                     CompletableFuture.allOf(
-                        player1.loadChunksAroundAsync(),
-                        player2.loadChunksAroundAsync()
+                        loadChunksAroundAsync(player1),
+                        loadChunksAroundAsync(player2)
                     )
                 ).thenRun(() -> {
                     new BukkitRunnable() {
@@ -217,7 +217,7 @@ public class DuelManager {
                 loc1.setDirection(loc2.toVector().subtract(loc1.toVector()));
                 loc2.setDirection(loc1.toVector().subtract(loc2.toVector()));
 
-                player.teleportAsync(loc1).thenCompose(v -> player.loadChunksAroundAsync()).thenRun(() -> {
+                player.teleportAsync(loc1).thenCompose(v -> loadChunksAroundAsync(player)).thenRun(() -> {
                     new BukkitRunnable() {
                         @Override
                         public void run() {
@@ -431,5 +431,23 @@ public class DuelManager {
 
         fw.setFireworkMeta(fwm);
         fw.detonate();
+    }
+
+    private CompletableFuture<Void> loadChunksAroundAsync(Player player) {
+        Location loc = player.getLocation();
+        World world = loc.getWorld();
+        if (world == null) return CompletableFuture.completedFuture(null);
+
+        int chunkX = loc.getBlockX() >> 4;
+        int chunkZ = loc.getBlockZ() >> 4;
+
+        List<CompletableFuture<Chunk>> futures = new ArrayList<>();
+        int radius = 1;
+        for (int x = chunkX - radius; x <= chunkX + radius; x++) {
+            for (int z = chunkZ - radius; z <= chunkZ + radius; z++) {
+                futures.add(world.getChunkAtAsync(x, z));
+            }
+        }
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
     }
 }
